@@ -3,11 +3,25 @@ import numpy as np
 import sys
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QMessageBox
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
+import re
 
 step=0.1
+def validateFunction(inp):
+    pattern = r'^(-?[0-9x]+[\+\-\*/\^])*-?[0-9x]+$' # Regular expression pattern
+    if re.match(pattern, inp):
+        return True
+    else:
+        return False
+def validateLimits(inp):
+    pattern = r'^(-?[1-9][0-9]*|0)$' # Regular expression pattern
+    if re.match(pattern, inp):
+        return True
+    else:
+        return False
+
 
 class MyApp(QWidget):
     def __init__(self):
@@ -32,9 +46,9 @@ class MyApp(QWidget):
         self.input_end.setFixedWidth(80)
         self.input_end.setPlaceholderText("End")
 
-        self.draw = QPushButton()
-        self.draw.setText("Draw")
-        self.draw.clicked.connect(self.update_chart)
+        self.button_draw = QPushButton()
+        self.button_draw.setText("Draw")
+        self.button_draw.clicked.connect(self.updatePlot)
 
         vlayout.addWidget(self.input_function)
 
@@ -45,7 +59,7 @@ class MyApp(QWidget):
         hLayout.setSpacing(30)
 
         vlayout.addLayout(hLayout)
-        vlayout.addWidget(self.draw)
+        vlayout.addWidget(self.button_draw)
         layout.addLayout(vlayout)
 
         self.canvas = FigureCanvas(plt.Figure(figsize=(15, 6)))
@@ -79,16 +93,20 @@ class MyApp(QWidget):
         self.plotAxes()
         self.plot = None
 
-    def update_chart(self):
-        value = self.input_function.text()
-        start = int(self.input_start.text())
-        end = int(self.input_end.text())
-        x,y = self.graphCalc(start,end)
-
+    def updatePlot(self):
+        function = self.input_function.text()
+        start = self.input_start.text()
+        end = self.input_end.text()
         if self.plot:
-            del self.plot[0]
+            self.axes.cla()
+            self.plotAxes()
+        if not self.validate(function,start,end):
+            return
+        x,y = self.graphCalc(int(start),int(end))
+        if not x:
+            return
         self.plot = self.axes.plot(x, y, color='g')
-        print(self.plot)
+
         self.canvas.draw()
 
     def plotAxes(self):
@@ -140,27 +158,63 @@ class MyApp(QWidget):
                            arrowprops=dict(arrowstyle="->", linewidth=1.5), va='center',
                            ha='right')
     def evaluate(self,x):
-        function = self.input_function.text().replace("^", "**")
-        return eval(function)
+        try:
+            function = self.input_function.text().replace("^", "**")
+            return eval(function)
+        except ZeroDivisionError :
+            self.alert("Please don't divide by zero")
+            return None
+        except Exception as e:
+            self.alert(e)
+            return None
+
 
     def graphCalc(self,start,end):
         x_res=[]
         y_res=[]
         for i in np.arange(start,end+step,step):
             x_res.append(i)
-            y_res.append(self.evaluate(i))
+            temp=self.evaluate(i)
+            if temp:
+                y_res.append(temp)
+            else:
+                return None,None
         return x_res,y_res
+
+    def alert(self, message):
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("Can't Draw")
+        dlg.setStyleSheet("QLabel{min-width: 300px;}");
+        dlg.setText(message)
+        button = dlg.exec_()
+    def validate(self,function,start,end):
+        if not validateFunction(function):
+            self.alert("function should be consists of numbers and x's \nand between each two only one of these +,-,*,/,^")
+            return False
+        if start=="":
+            self.alert("Please Enter start point")
+            return False
+        if end=="":
+            self.alert("Please Enter start point")
+            return False
+        if not validateLimits(start):
+            self.alert("Start point should be number")
+            return False
+        if not validateLimits(end):
+            self.alert("End point should be number")
+            return False
+        if float(start)>float(end):
+            self.alert("Start point should be less than or equal \nthe end point")
+            return False
+        return True
+
 
 if __name__ == '__main__':
     # don't auto scale when drag app to a different monitor.
     # QApplication.setAttribute(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyleSheet('''
-        QWidget {
-            font-size: 30px;
-        }
-    ''')
+
 
     myApp = MyApp()
     myApp.show()

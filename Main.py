@@ -5,7 +5,8 @@ import numpy as np
 import sys
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QMessageBox, QSpacerItem
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QMessageBox, QSpacerItem, \
+    QLabel
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 import re
@@ -37,7 +38,10 @@ class MyApp(QWidget):
         vLayout = QVBoxLayout()
         # layout.setContentsMargins(20,0,20,0)
         self.setLayout(layout)
+
+        self.colors = ['blue','green','red','cyan','magenta','yellow','black','pink']
         self.input_function = []
+        self.color_label = []
         self.input_start = []
         self.input_end = []
         self.button_add = []
@@ -46,6 +50,12 @@ class MyApp(QWidget):
 
         self.input_function.append(QLineEdit())
         self.input_function[0].setPlaceholderText("Function")
+
+        self.color_label.append(QLabel("<font color='blue'>⬤</font>"))
+        color_font = self.color_label[0].font()
+        color_font.setPointSize(15)
+        self.color_label[0].setFont(color_font)
+        # color_font.set(True)
 
         self.input_start.append(QLineEdit())
         self.input_start[0].setFixedWidth(80)
@@ -76,7 +86,11 @@ class MyApp(QWidget):
 
         self.function_layout = QVBoxLayout()
         textVLayout = QVBoxLayout()
-        textVLayout.addWidget(self.input_function[0])
+        colorLayout =QHBoxLayout()
+        colorLayout.addWidget(self.color_label[0])
+        colorLayout.addWidget(self.input_function[0])
+
+        textVLayout.addLayout(colorLayout)
 
         hLayout =QHBoxLayout()
         hLayout.addWidget(self.input_start[0])
@@ -92,7 +106,7 @@ class MyApp(QWidget):
         self.function_layout.addItem(self.spacing[0])
 
         vLayout.addLayout(self.function_layout)
-        vLayout.addSpacing(1000)
+        vLayout.addStretch()
         vLayout.setContentsMargins(0,40,5,0)
 
         vLayout.addWidget(self.button_draw)
@@ -138,7 +152,18 @@ class MyApp(QWidget):
         self.button_add[index-1].setVisible(False)
         self.input_function.append(QLineEdit())
         self.input_function[index].setPlaceholderText("Function")
-        textVLayout.addWidget(self.input_function[index])
+
+        self.color_label.append(QLabel(f"<font color='{self.colors[index]}'>⬤</font>"))
+        color_font = self.color_label[index].font()
+        color_font.setPointSize(15)
+        self.color_label[index].setFont(color_font)
+
+
+        colorLayout =QHBoxLayout()
+        colorLayout.addWidget(self.color_label[index])
+        colorLayout.addWidget(self.input_function[index])
+        textVLayout.addLayout(colorLayout)
+
 
 
         self.input_start.append(QLineEdit())
@@ -152,7 +177,7 @@ class MyApp(QWidget):
         hLayout = QHBoxLayout()
         hLayout.addWidget(self.input_start[index])
         hLayout.addWidget(self.input_end[index])
-        hLayout.setSpacing(15)
+        hLayout.setSpacing(10)
         textVLayout.addLayout(hLayout)
 
         new_function_layout.addLayout(textVLayout)
@@ -160,7 +185,8 @@ class MyApp(QWidget):
         self.button_remove.append(QPushButton())
         self.button_remove[index].setText("X")
         self.button_remove[index].setFixedWidth(20)
-        self.button_remove[index].setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
+        self.button_remove[index].setFixedHeight(50)
+        # self.button_remove[index].setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
         self.button_remove[index].clicked.connect(partial(self.removeFunction,index))
 
         new_function_layout.addWidget(self.button_remove[index])
@@ -171,7 +197,7 @@ class MyApp(QWidget):
         self.button_add[index].setText("Add")
         self.button_add[index].clicked.connect(self.addFunction)
         button_add_layout.addWidget(self.button_add[index])
-        if len(self.input_function)==5:
+        if len(self.input_function)==8:
             self.button_add[index].setVisible(False)
 
         # self.function_layout.addSpacing(20)
@@ -183,6 +209,9 @@ class MyApp(QWidget):
     def removeFunction(self,index):
         self.input_function[index].deleteLater()
         self.input_function.pop(index)
+
+        self.color_label[index].deleteLater()
+        self.color_label.pop(index)
 
         self.input_start[index].deleteLater()
         self.input_start.pop(index)
@@ -205,23 +234,37 @@ class MyApp(QWidget):
         for i in range(index, len(self.button_remove)):
             self.button_remove[i].clicked.disconnect()
             self.button_remove[i].clicked.connect(partial(self.removeFunction,i))
+        for i in range(index, len(self.color_label)):
+            self.color_label[i].setText(f"<font color='{self.colors[i]}'>⬤</font>")
         if index==len(self.input_function):
             self.button_add[index-1].setVisible(True)
+        if len(self.input_function)<8:
+            self.button_add[-1].setVisible(True)
 
     def updatePlot(self):
-        function = self.input_function[0].text()
-        start = self.input_start[0].text()
-        end = self.input_end[0].text()
+
         if self.plot:
             self.axes.cla()
             self.plotAxes()
-        if not self.validate(function,start,end):
-            return
-        x,y = self.graphCalc(int(start),int(end),function)
-        if not x:
-            return
-        self.plot = self.axes.plot(x, y, color='g')
-
+            print("bal3na badry")
+        for i in range (len(self.input_function)):
+            function = self.input_function[i].text()
+            start = self.input_start[i].text()
+            end = self.input_end[i].text()
+            if not self.validate(function,start,end,i):
+                self.canvas.draw()
+                print("tal3na")
+                return
+            x,y = self.graphCalc(int(start),int(end),function,i)
+            if not x:
+                print("nazlna")
+                self.canvas.draw()
+                return
+            if self.plot:
+                self.plot.append(self.axes.plot(x, y, color=self.colors[i]))
+            else:
+                self.plot=self.axes.plot(x, y, color=self.colors[i])
+            print("rasmna",i)
         self.canvas.draw()
 
     def plotAxes(self):
@@ -272,28 +315,30 @@ class MyApp(QWidget):
         self.axes.annotate("", xy=(0, ymin - 1), xytext=(0, ymin - 0.9),
                            arrowprops=dict(arrowstyle="->", linewidth=1.5), va='center',
                            ha='right')
-    def evaluate(self,x,function):
+    def evaluate(self,x,function,index):
         try:
             fun = function.replace("^", "**")
             return eval(fun)
         except ZeroDivisionError :
-            self.alert("Please don't divide by zero")
+            self.alert(f"Please don't divide by zero in function {index+1}")
             return None
         except Exception as e:
             self.alert(str(e))
             return None
 
 
-    def graphCalc(self,start,end,function):
+    def graphCalc(self,start,end,function,index):
         x_res=[]
         y_res=[]
         for i in np.arange(start,end+step,step):
             x_res.append(i)
-            temp=self.evaluate(i,function)
-            if temp:
+            temp=self.evaluate(i,function,index)
+            if temp!=None:
                 y_res.append(temp)
             else:
+                print("none",i,temp,x_res,y_res)
                 return None,None
+        print(x_res,y_res)
         return x_res,y_res
 
     def alert(self, message):
@@ -302,24 +347,24 @@ class MyApp(QWidget):
         dlg.setStyleSheet("QLabel{min-width: 300px;}");
         dlg.setText(message)
         button = dlg.exec_()
-    def validate(self,function,start,end):
+    def validate(self,function,start,end,index):
         if not validateFunction(function):
-            self.alert("function should be consists of numbers and x's \nand between each two only one of these +,-,*,/,^")
+            self.alert(f"function {index+1} should be consists of numbers and x's \nand between each two only one of these +,-,*,/,^")
             return False
         if start=="":
-            self.alert("Please Enter start point")
+            self.alert(f"Please Enter start point for function {index+1}")
             return False
         if end=="":
-            self.alert("Please Enter start point")
+            self.alert(f"Please Enter start point for function {index+1}")
             return False
         if not validateLimits(start):
-            self.alert("Start point should be number")
+            self.alert(f"Start point of function {index+1} should be a number")
             return False
         if not validateLimits(end):
-            self.alert("End point should be number")
+            self.alert(f"End point of function {index+1} should be a number")
             return False
         if float(start)>float(end):
-            self.alert("Start point should be less than or equal \nthe end point")
+            self.alert(f"Start point should be less than or equal \nthe end point for function {index+1}")
             return False
         return True
 

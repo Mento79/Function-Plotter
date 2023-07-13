@@ -1,9 +1,11 @@
+from functools import partial
+
 import matplotlib
 import numpy as np
 import sys
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QMessageBox
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QMessageBox, QSpacerItem
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 import re
@@ -35,17 +37,32 @@ class MyApp(QWidget):
         vLayout = QVBoxLayout()
         # layout.setContentsMargins(20,0,20,0)
         self.setLayout(layout)
-        self.input_function = QLineEdit()
-        self.input_function.setPlaceholderText("Function")
+        self.input_function = []
+        self.input_start = []
+        self.input_end = []
+        self.button_add = []
+        self.button_remove = []
+        self.spacing = []
 
-        self.input_start = QLineEdit()
-        self.input_start.setFixedWidth(80)
-        self.input_start.setPlaceholderText("Start")
+        self.input_function.append(QLineEdit())
+        self.input_function[0].setPlaceholderText("Function")
 
-        self.input_end = QLineEdit()
-        self.input_end.setFixedWidth(80)
-        self.input_end.setPlaceholderText("End")
+        self.input_start.append(QLineEdit())
+        self.input_start[0].setFixedWidth(80)
+        self.input_start[0].setPlaceholderText("Start")
 
+        self.input_end.append(QLineEdit())
+        self.input_end[0].setFixedWidth(80)
+        self.input_end[0].setPlaceholderText("End")
+
+        self.button_add.append(QPushButton())
+        self.button_add[0].setText("Add")
+
+        self.button_remove.append(QPushButton())
+        self.button_remove[0].setText("X")
+        self.button_remove[0].setVisible(False)
+
+        self.button_add[0].setText("Add")
         self.button_draw = QPushButton()
         self.button_draw.setText("Draw")
         self.button_draw.setFixedHeight(80)
@@ -55,26 +72,33 @@ class MyApp(QWidget):
 
 
         self.button_draw.clicked.connect(self.updatePlot)
+        self.button_add[0].clicked.connect(self.addFunction)
 
+        self.function_layout = QVBoxLayout()
         textVLayout = QVBoxLayout()
-        textVLayout.addWidget(self.input_function)
+        textVLayout.addWidget(self.input_function[0])
 
         hLayout =QHBoxLayout()
-        hLayout.addWidget(self.input_start)
-        hLayout.addWidget(self.input_end)
+        hLayout.addWidget(self.input_start[0])
+        hLayout.addWidget(self.input_end[0])
         hLayout.setSpacing(15)
 
         textVLayout.addLayout(hLayout)
-        vLayout.addLayout(textVLayout)
+        textVLayout.addWidget(self.button_add[0])
+
+
+        self.function_layout.addLayout(textVLayout)
+        self.spacing.append(QSpacerItem(20,20))
+        self.function_layout.addItem(self.spacing[0])
+
+        vLayout.addLayout(self.function_layout)
         vLayout.addSpacing(1000)
-        vLayout.setContentsMargins(0,0,5,0)
+        vLayout.setContentsMargins(0,40,5,0)
 
         vLayout.addWidget(self.button_draw)
         layout.addLayout(vLayout)
 
         self.canvas = FigureCanvas(plt.Figure(figsize=(15, 7)))
-        self.canvas.resize(1700,self.height())
-        print(self.canvas.get_width_height())
         toolbar = NavigationToolbar(self.canvas, self)
 
         vLayout2 = QVBoxLayout()
@@ -83,7 +107,7 @@ class MyApp(QWidget):
 
         layout.addLayout(vLayout2)
 
-        self.insert_ax()
+        self.insertAxes()
 
         # self.window=loader.load("app_v1.ui", self)
         # self.window.MplWidget = MatplotlibWidget(self.window.MplWidget)
@@ -92,7 +116,7 @@ class MyApp(QWidget):
         # self.window.button_draw.clicked.connect(self.window.MplWidget.plotGraph)
         # self.window.show()
 
-    def insert_ax(self):
+    def insertAxes(self):
         font = {
             'weight': 'normal',
             'size': 16
@@ -104,17 +128,96 @@ class MyApp(QWidget):
         self.axes.set_xlim([0, 1])
         self.plotAxes()
         self.plot = None
+    
+    def addFunction(self):
+        index = len(self.input_function)
+        button_add_layout =QVBoxLayout()
+        new_function_layout = QHBoxLayout()
+        textVLayout = QVBoxLayout()
+
+        self.button_add[index-1].setVisible(False)
+        self.input_function.append(QLineEdit())
+        self.input_function[index].setPlaceholderText("Function")
+        textVLayout.addWidget(self.input_function[index])
+
+
+        self.input_start.append(QLineEdit())
+        self.input_start[index].setFixedWidth(68)
+        self.input_start[index].setPlaceholderText("Start")
+
+        self.input_end.append(QLineEdit())
+        self.input_end[index].setFixedWidth(68)
+        self.input_end[index].setPlaceholderText("End")
+
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.input_start[index])
+        hLayout.addWidget(self.input_end[index])
+        hLayout.setSpacing(15)
+        textVLayout.addLayout(hLayout)
+
+        new_function_layout.addLayout(textVLayout)
+
+        self.button_remove.append(QPushButton())
+        self.button_remove[index].setText("X")
+        self.button_remove[index].setFixedWidth(20)
+        self.button_remove[index].setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
+        self.button_remove[index].clicked.connect(partial(self.removeFunction,index))
+
+        new_function_layout.addWidget(self.button_remove[index])
+
+        button_add_layout.addLayout(new_function_layout)
+
+        self.button_add.append(QPushButton())
+        self.button_add[index].setText("Add")
+        self.button_add[index].clicked.connect(self.addFunction)
+        button_add_layout.addWidget(self.button_add[index])
+        if len(self.input_function)==5:
+            self.button_add[index].setVisible(False)
+
+        # self.function_layout.addSpacing(20)
+        self.function_layout.addLayout(button_add_layout)
+        self.spacing.append(QSpacerItem(20,20))
+        self.function_layout.addItem(self.spacing[index])
+
+
+    def removeFunction(self,index):
+        self.input_function[index].deleteLater()
+        self.input_function.pop(index)
+
+        self.input_start[index].deleteLater()
+        self.input_start.pop(index)
+
+        self.input_end[index].deleteLater()
+        self.input_end.pop(index)
+
+        self.button_add[index].deleteLater()
+        self.button_add.pop(index)
+
+        self.button_remove[index].deleteLater()
+        self.button_remove.pop(index)
+
+        # self.function_layout.removeItem(self.function_layout.itemAt(2*index))
+        self.function_layout.removeItem(self.spacing[index])
+        self.spacing.pop(index)
+
+        # self.function_layout.itemAt(2 * index+1).deleteLater()
+        # self.function_layout.itemAt(2 * index).deleteLater()
+        for i in range(index, len(self.button_remove)):
+            self.button_remove[i].clicked.disconnect()
+            self.button_remove[i].clicked.connect(partial(self.removeFunction,i))
+        if index==len(self.input_function):
+            self.button_add[index-1].setVisible(True)
 
     def updatePlot(self):
-        function = self.input_function.text()
-        start = self.input_start.text()
-        end = self.input_end.text()
+        function = self.input_function[0].text()
+        start = self.input_start[0].text()
+        end = self.input_end[0].text()
         if self.plot:
             self.axes.cla()
             self.plotAxes()
         if not self.validate(function,start,end):
             return
-        x,y = self.graphCalc(int(start),int(end))
+        x,y = self.graphCalc(int(start),int(end),function)
         if not x:
             return
         self.plot = self.axes.plot(x, y, color='g')
@@ -169,24 +272,24 @@ class MyApp(QWidget):
         self.axes.annotate("", xy=(0, ymin - 1), xytext=(0, ymin - 0.9),
                            arrowprops=dict(arrowstyle="->", linewidth=1.5), va='center',
                            ha='right')
-    def evaluate(self,x):
+    def evaluate(self,x,function):
         try:
-            function = self.input_function.text().replace("^", "**")
-            return eval(function)
+            fun = function.replace("^", "**")
+            return eval(fun)
         except ZeroDivisionError :
             self.alert("Please don't divide by zero")
             return None
         except Exception as e:
-            self.alert(e)
+            self.alert(str(e))
             return None
 
 
-    def graphCalc(self,start,end):
+    def graphCalc(self,start,end,function):
         x_res=[]
         y_res=[]
         for i in np.arange(start,end+step,step):
             x_res.append(i)
-            temp=self.evaluate(i)
+            temp=self.evaluate(i,function)
             if temp:
                 y_res.append(temp)
             else:

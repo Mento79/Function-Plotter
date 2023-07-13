@@ -32,7 +32,7 @@ class MyApp(QWidget):
         self.setMinimumSize(self.window_width, self.window_height)
 
         layout = QHBoxLayout()
-        vlayout = QVBoxLayout()
+        vLayout = QVBoxLayout()
         # layout.setContentsMargins(20,0,20,0)
         self.setLayout(layout)
         self.input_function = QLineEdit()
@@ -48,28 +48,40 @@ class MyApp(QWidget):
 
         self.button_draw = QPushButton()
         self.button_draw.setText("Draw")
+        self.button_draw.setFixedHeight(80)
+        font = QtGui.QFont()
+        font.setPointSize(30)
+        self.button_draw.setFont(font)
+
+
         self.button_draw.clicked.connect(self.updatePlot)
 
-        vlayout.addWidget(self.input_function)
+        textVLayout = QVBoxLayout()
+        textVLayout.addWidget(self.input_function)
 
         hLayout =QHBoxLayout()
         hLayout.addWidget(self.input_start)
         hLayout.addWidget(self.input_end)
-        hLayout.setContentsMargins(100,0,100,0)
-        hLayout.setSpacing(30)
+        hLayout.setSpacing(15)
 
-        vlayout.addLayout(hLayout)
-        vlayout.addWidget(self.button_draw)
-        layout.addLayout(vlayout)
+        textVLayout.addLayout(hLayout)
+        vLayout.addLayout(textVLayout)
+        vLayout.addSpacing(1000)
+        vLayout.setContentsMargins(0,0,5,0)
 
-        self.canvas = FigureCanvas(plt.Figure(figsize=(15, 6)))
+        vLayout.addWidget(self.button_draw)
+        layout.addLayout(vLayout)
+
+        self.canvas = FigureCanvas(plt.Figure(figsize=(15, 7)))
+        self.canvas.resize(1700,self.height())
+        print(self.canvas.get_width_height())
         toolbar = NavigationToolbar(self.canvas, self)
 
-        vlayout2 = QVBoxLayout()
-        vlayout2.addWidget(toolbar)
-        vlayout2.addWidget(self.canvas)
+        vLayout2 = QVBoxLayout()
+        vLayout2.addWidget(toolbar)
+        vLayout2.addWidget(self.canvas)
 
-        layout.addLayout(vlayout2)
+        layout.addLayout(vLayout2)
 
         self.insert_ax()
 

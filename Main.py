@@ -61,7 +61,7 @@ class MyApp(QWidget):
         self.button_remove = []
         self.spacing = []
         index = 0
-        
+
         # set window options 
         self.setWindowTitle('Set Matplotlib Chart Value with QLineEdit Widget')
         self.window_width, self.window_height = 1200, 800
@@ -85,10 +85,10 @@ class MyApp(QWidget):
         function_text_box_layout = QHBoxLayout()
         start_and_end_layout = QHBoxLayout()
         main_canvas_layout = QVBoxLayout()
-        
+
         # set main app layout
         self.setLayout(app_layout)
-        
+
         # layout function text box and add it to the function box layout
         function_text_box_layout.addWidget(self.color_label[index])
         function_text_box_layout.addWidget(self.input_function[index])
@@ -99,15 +99,15 @@ class MyApp(QWidget):
         start_and_end_layout.addWidget(self.input_end[index])
         start_and_end_layout.setSpacing(15)
         function_box_layout.addLayout(start_and_end_layout)
-        
+
         # add button to function box layout
         function_box_layout.addWidget(self.button_add[index])
-        
+
         # add the first function layout to the main function layout
         self.function_layout.addLayout(function_box_layout)
         self.spacing.append(QSpacerItem(20, 20))
         self.function_layout.addItem(self.spacing[index])
-        
+
         # add the main function layout and the draw button to the sidebar layout and then add it to the app layout
         side_bar_layout.addLayout(self.function_layout)
         side_bar_layout.addStretch()
@@ -126,7 +126,6 @@ class MyApp(QWidget):
         self.axes.set_xlim([0, 1])
         self.plot_axes()
         self.plot = None
-
 
     def function_text_box_creation(self, index):
         self.input_function.append(QLineEdit())
@@ -169,48 +168,56 @@ class MyApp(QWidget):
         self.button_draw.setFont(font)
         self.button_draw.clicked.connect(self.update_plot)
 
-
     def add_function(self):
+
         index = len(self.input_function)
+
+        # hide the add button to add new one after the added function
+        self.button_add[index - 1].setVisible(False)
+
+        # create the new function boxes
+        self.function_text_box_creation(index)
+        self.start_and_end_box_creation(index, 68)
+        self.remove_and_add_button_creation(index)
+
+        # initialize the layouts
         button_add_layout = QVBoxLayout()
         new_function_layout = QHBoxLayout()
         function_box_layout = QVBoxLayout()
-
-        self.button_add[index - 1].setVisible(False)
-
-        self.function_text_box_creation(index)
-
         function_text_box_layout = QHBoxLayout()
+        start_and_end_layout = QHBoxLayout()
+
+        # layout function text box and add it to the function box layout
         function_text_box_layout.addWidget(self.color_label[index])
         function_text_box_layout.addWidget(self.input_function[index])
         function_box_layout.addLayout(function_text_box_layout)
 
-        self.start_and_end_box_creation(index, 68)
-
-        start_and_end_layout = QHBoxLayout()
+        # layout start and end text boxes and add it to the function box layout
         start_and_end_layout.addWidget(self.input_start[index])
         start_and_end_layout.addWidget(self.input_end[index])
         start_and_end_layout.setSpacing(10)
         function_box_layout.addLayout(start_and_end_layout)
 
+        # here we use a new layout to add a remove button beside the text boxes
         new_function_layout.addLayout(function_box_layout)
-
-        self.remove_and_add_button_creation(index)
-
         new_function_layout.addWidget(self.button_remove[index])
 
+        # here we use a new layout too to the add button under the previous new layout
         button_add_layout.addLayout(new_function_layout)
-
         button_add_layout.addWidget(self.button_add[index])
+
+        # hide the add button after we have 8 functions
         if len(self.input_function) == 8:
             self.button_add[index].setVisible(False)
 
-        # self.function_layout.addSpacing(20)
+        # add the new function to the main functions layout and add spacing
+        # between the current function and the next one to be created
         self.function_layout.addLayout(button_add_layout)
         self.spacing.append(QSpacerItem(20, 20))
         self.function_layout.addItem(self.spacing[index])
 
     def remove_function(self, index):
+        # remove the text boxes and the buttons of the removed function
         self.input_function[index].deleteLater()
         self.input_function.pop(index)
 
@@ -229,47 +236,64 @@ class MyApp(QWidget):
         self.button_remove[index].deleteLater()
         self.button_remove.pop(index)
 
-        # self.function_layout.removeItem(self.function_layout.itemAt(2*index))
         self.function_layout.removeItem(self.spacing[index])
         self.spacing.pop(index)
 
-        # self.function_layout.itemAt(2 * index+1).deleteLater()
-        # self.function_layout.itemAt(2 * index).deleteLater()
+        # update the index of the rest functions
         for i in range(index, len(self.button_remove)):
             self.button_remove[i].clicked.disconnect()
             self.button_remove[i].clicked.connect(partial(self.remove_function, i))
+
+        # update the color of the rest functions
         for i in range(index, len(self.color_label)):
             self.color_label[i].setText(f"<font color='{self.colors[i]}'>⬤</font>")
+
+        # update the place of the add button
         if index == len(self.input_function):
             self.button_add[index - 1].setVisible(True)
+        # visualize the add button if we have less than 8 functions
         if len(self.input_function) < 8:
             self.button_add[-1].setVisible(True)
 
+    # this function is used to plot a new ploot every time the draw button is clicked
     def update_plot(self):
 
+        # first we clear the previous axes and draw new one
         if self.plot:
             self.axes.cla()
             self.plot_axes()
+
+        # we loop on every function added to draw it
         for i in range(len(self.input_function)):
+
+            # we read the data from the text boxes of each function
             function = self.input_function[i].text()
             start = self.input_start[i].text()
             end = self.input_end[i].text()
+
+            # first we validate the data we get from the text boxes
             if not self.validate(start, end, function, i, True):
+                # if there are error clear the screen
                 self.canvas.draw()
                 return
+
+            # second we calculate the y to all the points to be drawn
             x, y = self.points_maker(int(start), int(end), function, i)
             if not x:
+                # if there are error clear the screen
                 self.canvas.draw()
                 return
+
+            # if it is not the first function to be plotted append it to the previous ones
             if self.plot:
                 self.plot.append(self.axes.plot(x, y, color=self.colors[i]))
+            # else just plot it
             else:
                 self.plot = self.axes.plot(x, y, color=self.colors[i])
         self.canvas.draw()
 
     def plot_axes(self):
         xmin, xmax, ymin, ymax = -100, 100, -100, 100
-        ticks_frequency = 1
 
         # Set identical scales for both axes
         self.axes.set(xlim=(xmin - 1, xmax + 1), ylim=(ymin - 1, ymax + 1), aspect='equal')
@@ -286,22 +310,10 @@ class MyApp(QWidget):
         self.axes.set_xlabel('x', size=14, labelpad=-24, x=1.03)
         self.axes.set_ylabel('y', size=14, labelpad=-21, y=1.02, rotation=0)
 
-        # # Create custom major ticks to determine position of tick labels
-        # x_ticks = np.arange(xmin, xmax + 1, 1)
-        # y_ticks = np.arange(ymin, ymax + 1, 1)
-        # self.axes.set_xticks(x_ticks[x_ticks != 0])
-        # self.axes.set_yticks(y_ticks[y_ticks != 0])
-
         # Draw major and minor grid lines
         self.axes.grid(which='both', color='grey', linewidth=1, linestyle='-', alpha=0.2)
 
         # Draw arrows
-        # arrow_fmt = dict(markersize=4, color='black', clip_on=False)
-        # self.axes.plot((1), (0), marker='>', transform=self.axes.get_yaxis_transform(), **arrow_fmt)
-        # self.axes.plot((-1), (0), marker='<', transform=self.axes.get_yaxis_transform(), **arrow_fmt)
-        # self.axes.plot((0), (1), marker='^', transform=self.axes.get_xaxis_transform(), **arrow_fmt)
-        # self.axes.plot((0), (-1), marker='v', transform=self.axes.get_xaxis_transform(), **arrow_fmt)
-
         arrow_fmt = dict(markersize=4, color='black', clip_on=False)
         self.axes.annotate("", xy=(xmax + 1, 0), xytext=(xmax + 0.9, 0),
                            arrowprops=dict(arrowstyle="->", linewidth=1.5), va='center',
@@ -319,6 +331,10 @@ class MyApp(QWidget):
     def points_maker(self, start, end, function, index):
         x_res = []
         y_res = []
+
+        # we calculate the y of each unit between start and end
+        # the difference between every two succesive units are 0.1
+        # we round the result to first three digits
         for i in np.arange(start, end + step, step):
             x_res.append(round(i, 3))
             temp = evaluate(self, i, function, index)
@@ -328,35 +344,42 @@ class MyApp(QWidget):
                 return None, None
         return x_res, y_res
 
+    # we use this function to display the error message as a new window on the screen
     def alert(self, message):
         self.dlg = QMessageBox(self)
         self.dlg.setWindowTitle("Can't Draw")
         self.dlg.setStyleSheet("QLabel{min-width: 300px;}");
         self.dlg.setText(message)
-        button = self.dlg.exec_()
+        self.dlg.exec_()
 
     def validate(self, start, end, function, index, alertbool):
+        # check if the function matches the regex
         if not validate_function(function):
             if alertbool:
                 self.alert(
                     f"function {index + 1} should be consists of numbers and x's \nand between each two only one of these +,-,*,/,^")
             return False
+        # check if the start is empty
         if start == "":
             if alertbool:
                 self.alert(f"Please Enter start point for function {index + 1}")
             return False
+        # check if the end is empty
         if end == "":
             if alertbool:
                 self.alert(f"Please Enter start point for function {index + 1}")
             return False
+        # check if the start is a number
         if not validate_limits(start):
             if alertbool:
                 self.alert(f"Start point of function {index + 1} should be a number")
             return False
+        # check if the end is a number
         if not validate_limits(end):
             if alertbool:
                 self.alert(f"End point of function {index + 1} should be a number")
             return False
+        # check if start is more the end
         if float(start) > float(end):
             if alertbool:
                 self.alert(f"Start point should be less than or equal \nthe end point for function {index + 1}")
@@ -365,15 +388,7 @@ class MyApp(QWidget):
 
 
 if __name__ == '__main__':
-    # don't auto scale when drag app to a different monitor.
-    # QApplication.setAttribute(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-
     app = QtWidgets.QApplication(sys.argv)
-
     myApp = MyApp()
     myApp.show()
-
-    try:
-        sys.exit(app.exec_())
-    except SystemExit:
-        print('Closing Window...')
+    app.exec_()

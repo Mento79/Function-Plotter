@@ -1,4 +1,4 @@
-![image005](https://github.com/Mento79/Function-Plotter/assets/77246893/88ef7cb6-71ac-463a-ae2a-ae734769c6d3)# Function-Plotter
+# Function-Plotter
  My own copy from Desmos
 ## Table of Contents
 - [Overview](#Overview)

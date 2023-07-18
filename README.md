@@ -41,7 +41,7 @@
 
 ---
 ## Tests
-+ Were done with Pytest and Pytest-QT libariries in python and on the validate function.
++ Were done with Pytest and Pytest-QT libariries in python and can be found in test_main.py.
 ---
 ## Sample Runs
   ![image001](https://github.com/Mento79/Function-Plotter/assets/77246893/631de576-5563-47b1-882c-dcbce90c12c1)

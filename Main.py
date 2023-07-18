@@ -1,5 +1,4 @@
 from functools import partial
-import matplotlib
 import numpy as np
 import sys
 from PySide2 import QtGui, QtWidgets
@@ -348,7 +347,7 @@ class MyApp(QWidget):
     def alert(self, message):
         self.dlg = QMessageBox(self)
         self.dlg.setWindowTitle("Can't Draw")
-        self.dlg.setStyleSheet("QLabel{min-width: 300px;}");
+        self.dlg.setStyleSheet("QLabel{min-width: 300px;}")
         self.dlg.setText(message)
         self.dlg.exec_()
 

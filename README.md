@@ -3,9 +3,9 @@
 ## Table of Contents
 - [Overview](#Overview)
 - [Tools and Libraries](#Tools-and-Libraries)
+- [Sample Runs](#Sample-Runs)
 - [Additional Features](#Additional-Features)
 - [Tests](#Tests)
-- [Sample Runs](#Sample-Runs)
 - [Some Errors](#Some-Errors)
 ---
 ## Overview
@@ -18,6 +18,15 @@
 > 1. Pyside2.
 > 1. Numpy. 
 > 1. Matplotlib. 
+---
+
+## Sample Runs
+  ![image001](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image001.png)
+  ![image005](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image005.png)
+  ![image007](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image007.png)
+  ![image009](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image009.png)
+  ![image019](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image019.png)
+  
 ---
 ## Additional Features
 + Zoom the graph.
@@ -43,14 +52,7 @@
 ## Tests
 + Were done with Pytest and Pytest-QT libariries in python and can be found in test_main.py.
 ---
-## Sample Runs
-  ![image001](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image001.png)
-  ![image005](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image005.png)
-  ![image007](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image007.png)
-  ![image009](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image009.png)
-  ![image019](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image019.png)
-  
----
+
 ## Some Errors
   ![image011](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image011.png)
   ![image013](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image013.png)

@@ -23,6 +23,7 @@
 + Zoom the graph.
   
    ![image021](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image021.png)
+   ![image](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image.png)
    ![image025](https://github.com/Mento79/Function-Plotter/blob/main/Screenshots/image025.png)
 
 
